@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Этикетка с QR</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --font-family: Calibri;
+      --label-width: 120mm;
+      --label-height: 65mm;
+      --label-border-width: 0.5px;
+      --label-border-color: #111;
+      --label-border-radius: 0mm;
+      --label-padding: 0mm;
+      --inner-rect-border-width: 1px;
+      --inner-rect-border-color: #444;
+      --inner-rect-border-radius: 1mm;
+      --inner-rect-top: 0mm;
+      --inner-rect-left: 0mm;
+      --inner-rect-right: 0mm;
+      --inner-rect-bottom: 0mm;
+      --left-col-width: 53mm;
+      --col-gap: 0mm;
+      --qr-size: 200px;
+      --qr-align-x: center;
+      --qr-align-y: center;
+      --qr-padding: 1.5mm;
+      --qr-offset-x: 0mm;
+      --qr-offset-y: 0mm;
+      --desc-padding: 1.5mm;
+      --desc-font-size: 17px;
+      --desc-line-height: 1.35;
+      --desc-font-weight: 600;
+      --desc-align-x: flex-start;
+      --desc-align-y: flex-start;
+      --desc-text-align: left;
+      --desc-offset-x: 0mm;
+      --desc-offset-y: 0mm;
+      --etap-font-weight: 700;
+      --etap-font-size: inherit;
+      --etap-color: inherit;
+      --icon-width: 100%;
+      --icon-object-fit: contain;
+      --icon-margin-top: 2mm;
+      --icon-offset-x: 0mm;
+      --icon-offset-y: 0mm;
+      --icon-border: none;
+      --icon-border-radius: 1mm;
+      --icon-opacity: 1;
+      --divider-width: 1px;
+      --divider-color: #aaa;
+      --page-margin: 5mm;
+      --ui-bg: #f0ede8;
+      --ui-panel-bg: #fff;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 28px 20px 60px;
+      background: var(--ui-bg);
+      font-family: var(--font-family);
+      color: #111;
+    }
+
+    .app {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -.5px;
+      margin: 0 0 20px;
+    }
+
+    .panel {
+      background: var(--ui-panel-bg);
+      border-radius: 14px;
+      padding: 22px 24px;
+      box-shadow: 0 6px 28px rgba(0, 0, 0, .09);
+      margin-bottom: 28px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+      color: #555;
+
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: var(--font-family);
+      outline: none;
+      transition: border-color .15s;
+      background: #fafafa;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: #111;
+      background: #fff;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--font-family);
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+
+    button:active {
+      transform: scale(.97);
+    }
+
+    .print-btn {
+      background: #111;
+      color: #fff;
+    }
+
+    .clear-btn {
+      background: #ebebeb;
+      color: #111;
+    }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #777;
+      line-height: 1.6;
+    }
+
+    .hint code {
+      background: #f0f0f0;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .icon-match {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      background: #eef8ee;
+      color: #2a7a2a;
+      border: 1px solid #c0e0c0;
+    }
+
+    .icon-match.no-match {
+      background: #f8f4ee;
+      color: #7a5a2a;
+      border-color: #e0d0b0;
+    }
+
+    .preview-wrap {
+      display: flex;
+      justify-content: center;
+      padding: 10mm 0 20mm;
+    }
+
+    .label {
+      width: var(--label-width);
+      height: var(--label-height);
+      background: #fff;
+      border: var(--label-border-width) solid var(--label-border-color);
+      border-radius: var(--label-border-radius);
+      padding: var(--label-padding);
+      position: relatives;
+      overflow: hidden;
+      font-family: var(--font-family);
+      transform: rotate(90deg);
+
+ 
+ 
+  bottom: 125px;
+  left: -50px;
+
+    }
+
+    .inner-rect {
+      position: absolute;
+      top: calc(var(--label-padding) + var(--inner-rect-top));
+      left: calc(var(--label-padding) + var(--inner-rect-left));
+      right: calc(var(--label-padding) + var(--inner-rect-right));
+      bottom: calc(var(--label-padding) + var(--inner-rect-bottom));
+      display: grid;
+      grid-template-columns: var(--left-col-width) 1fr;
+      column-gap: var(--col-gap);
+      border: var(--inner-rect-border-width) solid var(--inner-rect-border-color);
+      border-radius: var(--inner-rect-border-radius);
+      overflow: hidden;
+    }
+
+    .qr-box {
+      padding: var(--qr-padding);
+      display: flex;
+      align-items: var(--qr-align-y);
+      justify-content: var(--qr-align-x);
+      overflow: hidden;
+      transform: translate(var(--qr-offset-x), var(--qr-offset-y));
+      border-right: var(--divider-width) solid var(--divider-color);
+    }
+
+    .qr-box img,
+    .qr-box canvas {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+    }
+
+    .qr-placeholder {
+      color: #bbb;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .desc-box {
+      padding: var(--desc-padding);
+      display: flex;
+      flex-direction: column;
+      align-items: var(--desc-align-x);
+      overflow: hidden;
+      min-height: 0;
+      transform: translate(var(--desc-offset-x), var(--desc-offset-y));
+    }
+
+    .desc-content {
+      font-size: var(--desc-font-size);
+      line-height: var(--desc-line-height);
+      font-weight: var(--desc-font-weight);
+      text-align: var(--desc-text-align);
+      white-space: pre-wrap;
+      word-break: break-word;
+      width: 100%;
+      flex-shrink: 0; 
+    }
+
+    .desc-content .etap {
+      font-weight: var(--etap-font-weight);
+      font-size: var(--etap-font-size);
+      color: var(--etap-color);
+    }
+
+    .icon-wrap {
+      flex: 1 1 0;
+      min-height: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: var(--icon-margin-top);
+      transform: translate(var(--icon-offset-x), var(--icon-offset-y));
+      width: 100%;
+    }
+
+    .icon-wrap img {
+      max-width: var(--icon-width);
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: var(--icon-object-fit);
+      border: var(--icon-border);
+      border-radius: var(--icon-border-radius);
+      opacity: var(--icon-opacity);
+      display: block;
+    }
+
+    @page {
+      
+  size: 90mm 135mm;   /* точные размеры этикетки после поворота */
+  margin: 0;
+
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+
+      .panel,
+      h1,
+      .hint {
+        display: none !important;
+      }
+
+      .preview-wrap {
+        display: block;
+        padding: 0;
+      }
+
+      .label {
+   position:absolute;
+  
+} }
+      @media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color: #000 !important;
+        -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: geometricPrecision;
+  }
+}
+    
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <h1>Этикетка с QR-кодом</h1>
+    <div class="panel">
+      <div class="form-group">
+        <label for="linkInput">Ссылка для QR-кода</label>
+        <input id="linkInput" type="text" placeholder="https://..." />
+      </div>
+      <div class="form-group">
+        <label for="descInput">Описание</label>
+        <textarea id="descInput"
+          placeholder="Введите описание&#10;Этап 1206.3.1 — выделится жирным&#10;Код детали (например .259 или .272-01) → иконка добавится автоматически"></textarea>
+      </div>
+      <div id="iconStatus"></div>
+      <div class="actions">
+        <button class="print-btn" id="printBtn">Печать</button>
+        <button class="clear-btn" id="clearBtn">Очистить</button>
+      </div>
+      <p class="hint">
+        <b>Made by alex sergeev(tg:@noxeu)</b><br>
+        -
+      </p>
+    </div>
+    <div class="preview-wrap">
+      <div class="label" id="printArea">
+        <div class="inner-rect">
+          <div class="qr-box">
+            <div id="qrcode"><span class="qr-placeholder">QR появится<br>здесь</span></div>
+          </div>
+          <div class="desc-box">
+            <div class="desc-content" id="descPreview"></div>
+            <div class="icon-wrap" id="iconWrap" style="display:none">
+              <img id="iconImg" src="" alt="" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ICONS = {
+      '203': { label: 'обтекатель нижний', src: 'icons/203 - обтекатель нижний.jpg' },
+      '204': { label: 'гаргрот боковой', src: 'icons/204 - гаргрот боковой.jpg' },
+      '206': { label: 'гаргрот носовой', src: 'icons/206 - гаргрот носовой.jpg' },
+      '208': { label: 'жесткость', src: 'icons/208 - жесткость.jpg' },
+      '211': { label: 'обшивка', src: 'icons/211 - обшивка.jpg' },
+      '212': { label: 'перегородка', src: 'icons/212 - перегородка.jpg' },
+      '219': { label: 'обтекатель', src: 'icons/219 - обтекатель.jpg' },
+      '221': { label: 'обшивка нижняя', src: 'icons/221 - обшивка нижняя.jpg' },
+      '222': { label: 'обшивка верхняя', src: 'icons/222 - обшивка верхняя.jpg' },
+      '228': { label: 'крышка', src: 'icons/228 - крышка.jpg' },
+      '229': { label: 'окантовка', src: 'icons/229 - окантовка.jpg' },
+      '231': { label: 'обшивка нижняя', src: 'icons/231 - обшивка нижняя.jpg' },
+      '232': { label: 'обшивка верхняя', src: 'icons/232 - обшивка верхняя.jpg' },
+      '234': { label: 'перегородка', src: 'icons/234 - перегородка.jpg' },
+      '235': { label: 'перегородка', src: 'icons/235 - перегородка.jpg' },
+      '241': { label: 'обшивка нижняя', src: 'icons/241 - обшивка нижняя.jpg' },
+      '242': { label: 'обшивка верхняя', src: 'icons/242 - обшивка верхняя.jpg' },
+      '254': { label: 'консоль оперения', src: 'icons/254 - консоль оперения.jpg' },
+      '259': { label: 'консоль киля ВО', src: 'icons/259 - консоль киля ВО.jpg' },
+      '267': { label: 'обтекатель', src: 'icons/267 - обтекатель.jpg' },
+      '268': { label: 'площадка', src: 'icons/268 - площадка.jpg' },
+      '272': { label: 'консоль левая', src: 'icons/272 - консоль левая.jpg' },
+      '272-01': { label: 'консоль правая', src: 'icons/272-01 - консоль правая.jpg' },
+      '291': { label: 'окантовка', src: 'icons/291 - окантовка.jpg' },
+      '294': { label: 'капот', src: 'icons/294 - капот.jpg' },
+      '299': { label: 'окантовка', src: 'icons/299 - окантовка.jpg' },
+      '387': { label: 'окантовка', src: 'icons/387 - окантовка.jpg' },
+      '390': { label: 'кронштейн', src: 'icons/390 - кронштейн.jpg' }
+    };
+
+    const linkInput = document.getElementById('linkInput');
+    const descInput = document.getElementById('descInput');
+    const descPreview = document.getElementById('descPreview');
+    const qrcodeEl = document.getElementById('qrcode');
+    const iconWrap = document.getElementById('iconWrap');
+    const iconImg = document.getElementById('iconImg');
+    const iconStatus = document.getElementById('iconStatus');
+    const printBtn = document.getElementById('printBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    let clearAfterPrint = false;
+
+    function getQrSize() {
+      return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--qr-size')) || 200;
+    }
+
+    function updateQr() {
+      const val = linkInput.value.trim();
+      qrcodeEl.innerHTML = '';
+      if (!val) { qrcodeEl.innerHTML = '<span class="qr-placeholder">QR появится<br>здесь</span>'; return; }
+      new QRCode(qrcodeEl, { text: val, width: getQrSize(), height: getQrSize(), correctLevel: QRCode.CorrectLevel.M });
+    }
+
+    const ICON_KEYS = Object.keys(ICONS).sort((a, b) => b.length - a.length);
+    function findIconKey(text) {
+      for (const key of ICON_KEYS) {
+        const escaped = key.replace(/\./g, '\\.').replace(/-/g, '-');
+        if (new RegExp('(?<![\\w])' + escaped + '(?![\\w])', 'i').test(text)) return key;
+      }
+      return null;
+    }
+
+    const ETAP_RE = /(Этап\s+\d+(?:\.\d+)+)/gi;
+    function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    function updateDesc() {
+      const text = descInput.value;
+      descPreview.innerHTML = escHtml(text).replace(ETAP_RE, m => `<span class="etap">${m}</span>`);
+      const key = findIconKey(text);
+      if (key) {
+        iconImg.src = ICONS[key].src;
+        iconImg.alt = ICONS[key].label;
+        iconWrap.style.display = 'flex';
+        iconStatus.innerHTML = `<span class="icon-match">✓ Иконка найдена: <b>${key}</b> — ${ICONS[key].label}</span>`;
+      } else {
+        iconImg.src = '';
+        iconWrap.style.display = 'none';
+        iconStatus.innerHTML = text.trim() ? '<span class="icon-match no-match">— Код детали не найден в базе</span>' : '';
+      }
+    }
+
+    function clearAll() {
+      linkInput.value = ''; descInput.value = '';
+      updateQr(); updateDesc(); clearAfterPrint = false;
+    }
+
+    linkInput.addEventListener('input', updateQr);
+    descInput.addEventListener('input', updateDesc);
+    clearBtn.addEventListener('click', clearAll);
+    printBtn.addEventListener('click', () => { updateQr(); updateDesc(); clearAfterPrint = true; window.print(); });
+    window.addEventListener('afterprint', () => { if (clearAfterPrint) clearAll(); });
+
+    updateDesc(); updateQr();
+  </script>
+</body>
+
+</html>
